@@ -1,17 +1,20 @@
 use rand::prelude::*;
 use rayon::prelude::*;
-use image::{Pixel, Rgb, GenericImage, ImageBuffer};
+use image::{Rgb, ImageBuffer};
+use indicatif::{ProgressBar, ProgressStyle};
 
 use rtracer::vec3::Vec3;
 use rtracer::ray::Ray;
 use rtracer::material::{Dielectric, Material, Metal, Lambertian};
 use rtracer::hitable::{HitRecord, Hitable};
 use rtracer::camera::Camera;
+use rtracer::config::Config;
 
 fn main() {
-    let nx = 1200;
-    let ny = 800;
-    let ns = 10; // num samples for antialiasing
+    let conf = Config::from_cli_args();
+    let nx = conf.width();
+    let ny = conf.height();
+    let ns = conf.samples(); // num samples for antialiasing
 
     let look_from = Vec3::new(13.0, 2.0, 3.0);
     let look_at = Vec3::new(0.0, 0.0, 0.0);
@@ -24,48 +27,53 @@ fn main() {
 
     let world = random_sphere_scene();
 
-//    let world: Vec<Box<dyn Hitable>> = vec![
-//        Box::new(Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5, Lambertian::new(Vec3::new(0.1, 0.2, 0.5)))),
-//        Box::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0, Lambertian::new(Vec3::new(0.8, 0.8, 0.0)))),
-//        Box::new(Sphere::new(Vec3::new(1.0, 0.0, -1.0), 0.5, Metal::new(Vec3::new(0.8, 0.6, 0.2), 0.0))),
-//        Box::new(Sphere::new(Vec3::new(-1.0, 0.0, -1.0), 0.5, Dielectric::new(1.5))),
-//        Box::new(Sphere::new(Vec3::new(-1.0, 0.0, -1.0), -0.45, Dielectric::new(1.5))),
-//    ];
-//    //let r = (std::f32::consts::PI / 4.0).cos();
-    //let world: Vec<Box<dyn Hitable>> = vec![
-        //Box::new(Sphere::new(Vec3::new(-r, 0.0, -1.0), r, Lambertian::new(Vec3::new(0.0, 0.0, 1.0)))),
-        //Box::new(Sphere::new(Vec3::new(r, 0.0, -1.0), r, Lambertian::new(Vec3::new(1.0, 0.0, 0.0)))),
-    //];
-
     let mut imgbuf = ImageBuffer::new(nx, ny);
 
     let mut coords = Vec::with_capacity((nx * ny) as usize);
-    for j in (0..ny).rev() {
+    for j in 0..ny {
         for i in 0..nx {
             coords.push((i, j));
         }
     }
-    let pixels: Vec<(u32, u32, Rgb<u8>)> = coords.par_iter()
+
+    let pb = ProgressBar::new(coords.len() as u64 * ns as u64);
+     pb.set_style(ProgressStyle::default_bar()
+        .template("{elapsed_precise} (eta {eta}) [{wide_bar}] rays:{pos}/{len}")
+        .progress_chars("█▉▊▋▌▍▎▏  "));
+
+    let pixels: Vec<(u32, u32, Vec3)> = coords.par_iter()
         .map(|&(i, j)| {
+            let j2 = ny - j; // render from bottom up to avoid image needing to be flipped
             let mut rng = rand::thread_rng();
             let mut col = Vec3::new(0.0, 0.0, 0.0); // mean colour over samples
             for _ in 0..ns {
                 let u = (i as f32 + rng.gen_range(0.0, 1.0)) / nx as f32;
-                let v = (j as f32 + rng.gen_range(0.0, 1.0)) / ny as f32;
-                let r = camera.get_ray(u, v);
+                let v = (j2 as f32 + rng.gen_range(0.0, 1.0)) / ny as f32;
+                let r = &camera.get_ray(u, v);
                 col += colour(&r, world.as_slice(), 0);
             }
             col /= ns as f32;
 
-            (i, j, Rgb(to_colour(col)))
+            pb.inc(ns as u64); (i, j, col)
         })
         .collect();
 
-    for (i, j, pixel) in pixels {
-        imgbuf.put_pixel(i, j, pixel);
+    for (i, j, col) in pixels {
+        imgbuf.put_pixel(i, j, Rgb(to_colour(col)));
     }
 
-    //imgbuf.save("/tmp/o.png").unwrap();
+    imgbuf.save(conf.output()).unwrap();
+    pb.finish_with_message("done");
+    println!("Image written to: {}", conf.output().display());
+
+    if conf.inline() {
+        let png_data = std::fs::read(conf.output()).unwrap();
+        render_inline(&png_data);
+    }
+}
+
+fn render_inline(img: &[u8]) {
+    println!("\x1b]1337;File=;inline=1:{}\x07", base64::encode(img));
 }
 
 fn random_sphere_scene() -> Vec<Box<dyn Hitable + Send + Sync>> {
@@ -86,12 +94,12 @@ fn random_sphere_scene() -> Vec<Box<dyn Hitable + Send + Sync>> {
 
             if (center - Vec3::new(4.0, sphere_radius, 0.0)).length() > 0.9 {
                 let sphere: Box<dyn Hitable + Send + Sync> = {
-                    if choose_mat < 0.8 { // diffuse
+                    if choose_mat < 0.7 { // diffuse
                         let albedo = Vec3::new(rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0),
                                                rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0),
                                                rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0));
                         Box::new(Sphere::new(center, sphere_radius, Lambertian::new(albedo)))
-                    } else if choose_mat < 0.95 { // metal
+                    } else if choose_mat < 0.90 { // metal
                         let albedo = Vec3::new(rng.gen_range(0.5, 1.0),
                                                rng.gen_range(0.5, 1.0),
                                                rng.gen_range(0.5, 1.0));
@@ -140,25 +148,11 @@ fn colour(r: &Ray, world: &[Box<dyn Hitable + Send + Sync>], depth: usize) -> Ve
     }
 }
 
-fn print_header(nx: u32, ny: u32) {
-    println!("P3\n{} {}\n255", nx, ny);
-}
-
-fn print_colour(col: Vec3) {
-    // square root for gamma correction - raise to power of 1/gamma, e.g. sqrt in this case
-    println!("{} {} {}",
-             (255.99 * col[0].sqrt()) as i32,
-             (255.99 * col[1].sqrt()) as i32,
-             (255.99 * col[2].sqrt()) as i32)
-}
-
 fn to_colour(col: Vec3) -> [u8; 3] {
     [(255.99 * col[0].sqrt()) as u8,
      (255.99 * col[1].sqrt()) as u8,
      (255.99 * col[2].sqrt()) as u8]
 }
-
-
 
 struct Sphere<M: Material> {
     center: Vec3,

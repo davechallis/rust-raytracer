@@ -4,3 +4,4 @@ pub mod material;
 pub mod hitable;
 mod utils;
 pub mod camera;
+pub mod config;
