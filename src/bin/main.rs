@@ -172,7 +172,7 @@ impl<M: Material> Sphere<M> {
 
 impl<M: Material> Hitable for Sphere<M> {
     fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
-        let oc = r.origin() - self.center; // vector from ray source to sphere center
+        let oc = *r.origin() - self.center; // vector from ray source to sphere center
         let a = r.direction().dot(&r.direction());
         let b = oc.dot(&r.direction());
         let c = oc.dot(&oc) - self.radius.powi(2);
