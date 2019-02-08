@@ -5,8 +5,8 @@ use indicatif::{ProgressBar, ProgressStyle};
 
 use rtracer::vec3::Vec3;
 use rtracer::ray::Ray;
-use rtracer::material::{Dielectric, Material, Metal, Lambertian};
-use rtracer::hitable::{HitRecord, Hitable};
+use rtracer::material::{Dielectric, Metal, Lambertian};
+use rtracer::hitable::{Hitable, MovingSphere, Sphere};
 use rtracer::camera::Camera;
 use rtracer::config::Config;
 
@@ -22,10 +22,10 @@ fn main() {
     let field_of_view = 20.0;
     let aspect_ratio = nx as f32 / ny as f32;
     let focal_distance = 10.0; //(look_from - look_at).length();
-    let aperture = 0.1;
-    let camera = Camera::new(look_from, look_at, up_vector, field_of_view, aspect_ratio, aperture, focal_distance);
+    let aperture = 0.0;
+    let camera = Camera::new(look_from, look_at, up_vector, field_of_view, aspect_ratio, aperture, focal_distance, 0.0, 1.0);
 
-    let world = random_sphere_scene();
+    let world = random_moving_sphere_scene();
 
     let mut imgbuf = ImageBuffer::new(nx, ny);
 
@@ -47,8 +47,8 @@ fn main() {
             let mut rng = rand::thread_rng();
             let mut col = Vec3::new(0.0, 0.0, 0.0); // mean colour over samples
             for _ in 0..ns {
-                let u = (i as f32 + rng.gen_range(0.0, 1.0)) / nx as f32;
-                let v = (j2 as f32 + rng.gen_range(0.0, 1.0)) / ny as f32;
+                let u = (i as f32 + rng.gen::<f32>()) / nx as f32;
+                let v = (j2 as f32 + rng.gen::<f32>()) / ny as f32;
                 let r = &camera.get_ray(u, v);
                 col += colour(&r, world.as_slice(), 0);
             }
@@ -87,23 +87,23 @@ fn random_sphere_scene() -> Vec<Box<dyn Hitable + Send + Sync>> {
 
     for a in -11..11 {
         for b in -11..11 {
-            let choose_mat = rng.gen_range(0.0, 1.0);
-            let center = Vec3::new(a as f32 + 0.9 * rng.gen_range(0.0, 1.0),
+            let choose_mat = rng.gen::<f32>();
+            let center = Vec3::new(a as f32 + 0.9 * rng.gen::<f32>(),
                                    sphere_radius,
-                                   b as f32 + 0.9 * rng.gen_range(0.0, 1.0));
+                                   b as f32 + 0.9 * rng.gen::<f32>());
 
             if (&center - Vec3::new(4.0, sphere_radius, 0.0)).length() > 0.9 {
                 let sphere: Box<dyn Hitable + Send + Sync> = {
                     if choose_mat < 0.7 { // diffuse
-                        let albedo = Vec3::new(rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0),
-                                               rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0),
-                                               rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0));
+                        let albedo = Vec3::new(rng.gen::<f32>() * rng.gen::<f32>(),
+                                               rng.gen::<f32>() * rng.gen::<f32>(),
+                                               rng.gen::<f32>() * rng.gen::<f32>());
                         Box::new(Sphere::new(center, sphere_radius, Lambertian::new(albedo)))
                     } else if choose_mat < 0.90 { // metal
                         let albedo = Vec3::new(rng.gen_range(0.5, 1.0),
                                                rng.gen_range(0.5, 1.0),
                                                rng.gen_range(0.5, 1.0));
-                        let fuzz = 0.5 * rng.gen_range(0.0, 1.0);
+                        let fuzz = 0.5 * rng.gen::<f32>();
                         Box::new(Sphere::new(center, sphere_radius, Metal::new(albedo, fuzz)))
                     } else { // glass
                         Box::new(Sphere::new(center, sphere_radius, Dielectric::new(1.5)))
@@ -120,6 +120,53 @@ fn random_sphere_scene() -> Vec<Box<dyn Hitable + Send + Sync>> {
 
     list
 }
+
+fn random_moving_sphere_scene() -> Vec<Box<dyn Hitable + Send + Sync>> {
+    let mut rng = rand::thread_rng();
+    let n = 500;
+    let sphere_radius = 0.2;
+    let mut list: Vec<Box<dyn Hitable + Send + Sync>> = Vec::with_capacity(n + 1);
+
+    // giant sphere for ground
+    list.push(Box::new(Sphere::new(Vec3::new(0.0, -1000.0, 0.0), 1000.0, Lambertian::new(Vec3::new(0.5, 0.5, 0.5)))));
+
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat = rng.gen::<f32>();
+            let center = Vec3::new(a as f32 + 0.9 * rng.gen::<f32>(),
+                                   sphere_radius,
+                                   b as f32 + 0.9 * rng.gen::<f32>());
+
+            if (&center - Vec3::new(4.0, sphere_radius, 0.0)).length() > 0.9 {
+                let sphere: Box<dyn Hitable + Send + Sync> = {
+                    if choose_mat < 0.7 { // diffuse
+                        let albedo = Vec3::new(rng.gen::<f32>() * rng.gen::<f32>(),
+                                               rng.gen::<f32>() * rng.gen::<f32>(),
+                                               rng.gen::<f32>() * rng.gen::<f32>());
+                        let center1 = &center + Vec3::new(0.0, rng.gen_range(0.0, 0.5), 0.0);
+                        Box::new(MovingSphere::new(center, center1, 0.0, 1.0, sphere_radius, Lambertian::new(albedo)))
+                    } else if choose_mat < 0.90 { // metal
+                        let albedo = Vec3::new(rng.gen_range(0.5, 1.0),
+                                               rng.gen_range(0.5, 1.0),
+                                               rng.gen_range(0.5, 1.0));
+                        let fuzz = 0.5 * rng.gen::<f32>();
+                        Box::new(Sphere::new(center, sphere_radius, Metal::new(albedo, fuzz)))
+                    } else { // glass
+                        Box::new(Sphere::new(center, sphere_radius, Dielectric::new(1.5)))
+                    }
+                };
+
+                list.push(sphere);
+            }
+        }
+    }
+    list.push(Box::new(Sphere::new(Vec3::new(0.0, 1.0, 0.0), 1.0, Dielectric::new(1.5))));
+    list.push(Box::new(Sphere::new(Vec3::new(-4.0, 1.0, 0.0), 1.0, Lambertian::new(Vec3::new(0.4, 0.2, 0.1)))));
+    list.push(Box::new(Sphere::new(Vec3::new(4.0, 1.0, 0.0), 1.0, Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.0))));
+
+    list
+}
+
 
 fn colour(r: &Ray, world: &[Box<dyn Hitable + Send + Sync>], depth: usize) -> Vec3 {
     // shadow acne problem - due to numerical inaccuracy, t can be e.g. -0.00000001 or 0.0000001,
@@ -152,47 +199,4 @@ fn to_colour(col: Vec3) -> [u8; 3] {
     [(255.99 * col[0].sqrt()) as u8,
      (255.99 * col[1].sqrt()) as u8,
      (255.99 * col[2].sqrt()) as u8]
-}
-
-struct Sphere<M: Material> {
-    center: Vec3,
-    radius: f32,
-    material: M,
-}
-
-impl<M: Material> Sphere<M> {
-    fn new(center: Vec3, radius: f32, material: M) -> Self {
-        Sphere { center, radius, material }
-    }
-
-    fn surface_normal(&self, p: &Vec3) -> Vec3 {
-        (p - &self.center) / self.radius
-    }
-}
-
-impl<M: Material> Hitable for Sphere<M> {
-    fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
-        let oc = r.origin() - &self.center; // vector from ray source to sphere center
-        let a = r.direction().dot(&r.direction());
-        let b = oc.dot(&r.direction());
-        let c = oc.dot(&oc) - self.radius.powi(2);
-        let discriminant = b * b - a * c;
-        if discriminant > 0.0 {
-            let t = (-b - discriminant.sqrt()) / a;
-            if t < t_max && t > t_min {
-                let p = r.point_at_parameter(t);
-                let normal = self.surface_normal(&p);
-                return Some(HitRecord { t, p, normal, material: &self.material });
-            }
-
-            let t = (-b + discriminant.sqrt()) / a;
-            if t < t_max && t > t_min {
-                let p = r.point_at_parameter(t);
-                let normal = self.surface_normal(&p);
-                return Some(HitRecord { t, p, normal, material: &self.material });
-            }
-        }
-
-        None
-    }
 }

@@ -2,6 +2,12 @@ use crate::vec3::Vec3;
 use crate::ray::Ray;
 use crate::material::Material;
 
+mod sphere;
+pub use sphere::Sphere;
+
+mod moving_sphere;
+pub use moving_sphere::MovingSphere;
+
 pub struct HitRecord<'a> {
     pub t: f32,
     pub p: Vec3,

@@ -16,14 +16,14 @@ impl Lambertian {
 }
 
 impl Material for Lambertian {
-    fn scatter(&self, _r: &Ray, hit_rec: &HitRecord) -> Option<(Vec3, Ray)> {
+    fn scatter(&self, ray_in: &Ray, hit_rec: &HitRecord) -> Option<(Vec3, Ray)> {
         // get random scatter direction from unit sphere
         let target = &hit_rec.p + &hit_rec.normal + utils::random_in_unit_sphere();
 
         // new ray from hit point
-        let scattered = Ray::new(hit_rec.p.clone(), &target - &hit_rec.p);
+        let scattered_ray = Ray::new_at_time(hit_rec.p.clone(), &target - &hit_rec.p, ray_in.time());
         let attenuation = self.albedo.clone();
 
-        Some((attenuation, scattered))
+        Some((attenuation, scattered_ray))
     }
 }

@@ -44,10 +44,10 @@ impl Material for Dielectric {
         };
 
         let mut rng = rand::thread_rng();
-        let scattered_ray = if rng.gen_range(0.0, 1.0) < reflect_prob {
-            Ray::new(hit_rec.p.clone(), reflected)
+        let scattered_ray = if rng.gen::<f32>() < reflect_prob {
+            Ray::new_at_time(hit_rec.p.clone(), reflected, r.time())
         } else {
-            Ray::new(hit_rec.p.clone(), refracted_ray.unwrap())
+            Ray::new_at_time(hit_rec.p.clone(), refracted_ray.unwrap(), r.time())
         };
 
         Some((attenuation, scattered_ray))
