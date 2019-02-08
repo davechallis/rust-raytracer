@@ -25,14 +25,13 @@ pub fn random_in_unit_disc() -> Vec3 {
 
 // ray reflection is v + 2B. N is unit vector, so len of B is v.N. This points in, so negate.
 pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
-    *v - 2.0 * v.dot(n) * *n
+    v - &(2.0 * v.dot(n) * n)
 }
 
 pub fn refract(v: &Vec3, n: &Vec3, ni_over_nt: f32) -> Option<Vec3> {
     let uv = v.to_unit_vector();
     let dt = uv.dot(n);
     let discriminant = 1.0 - ni_over_nt.powi(2) * (1.0-dt.powi(2));
-    let n = *n;
     if discriminant > 0.0 {
         let refracted = ni_over_nt * (uv - n * dt) - n * discriminant.sqrt();
         Some(refracted)

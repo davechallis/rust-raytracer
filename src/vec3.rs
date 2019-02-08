@@ -1,6 +1,6 @@
 use std::ops::{Add, AddAssign, Neg, Div, DivAssign, Sub, SubAssign, Mul, MulAssign, Index, IndexMut};
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Vec3 {
     e: [f32; 3]
 }
@@ -18,8 +18,9 @@ impl Vec3 {
         self.e[0].powi(2) + self.e[1].powi(2) + self.e[2].powi(2)
     }
 
-    pub fn to_unit_vector(self) -> Self {
-        self * (1.0 / self.length())
+    pub fn to_unit_vector(&self) -> Vec3 {
+        let length = self.length();
+        self * (1.0 / length)
     }
 
     pub fn dot(&self, other: &Self) -> f32 {
@@ -30,6 +31,46 @@ impl Vec3 {
         Vec3::new(self.e[1] * other.e[2] - self.e[2] * other.e[1],
                   -(self.e[0] * other.e[2] - self.e[2] * other.e[0]),
                   self.e[0] * other.e[1] - self.e[1] * other.e[0])
+    }
+}
+
+
+impl Add<Vec3> for &Vec3 {
+    type Output = Vec3;
+
+    fn add(self, other: Vec3) -> Vec3 {
+        Vec3 {
+            e: [self.e[0] + other.e[0],
+                self.e[1] + other.e[1],
+                self.e[2] + other.e[2]]
+        }
+    }
+}
+
+impl Add<&Vec3> for Vec3 {
+    type Output = Vec3;
+
+    fn add(self, other: &Vec3) -> Vec3 {
+        Vec3 {
+            e: [self.e[0] + other.e[0],
+                self.e[1] + other.e[1],
+                self.e[2] + other.e[2]]
+        }
+    }
+}
+
+
+
+
+impl Add for &Vec3 {
+    type Output = Vec3;
+
+    fn add(self, other: Self) -> Vec3 {
+        Vec3 {
+            e: [self.e[0] + other.e[0],
+                self.e[1] + other.e[1],
+                self.e[2] + other.e[2]]
+        }
     }
 }
 
@@ -57,6 +98,18 @@ impl Add<f32> for Vec3 {
     }
 }
 
+impl Add<f32> for &Vec3 {
+    type Output = Vec3;
+
+    fn add(self, scalar: f32) -> Vec3 {
+        Vec3 {
+            e: [self.e[0] + scalar,
+                self.e[1] + scalar,
+                self.e[2] + scalar]
+        }
+    }
+}
+
 impl AddAssign for Vec3 {
     fn add_assign(&mut self, other: Self) {
         self.e[0] += other.e[0];
@@ -64,6 +117,34 @@ impl AddAssign for Vec3 {
         self.e[2] += other.e[2];
     }
 }
+
+impl Sub<&Vec3> for Vec3 {
+    type Output = Vec3;
+
+    fn sub(self, other: &Vec3) -> Vec3 {
+        Vec3 {
+            e: [self.e[0] - other.e[0],
+                self.e[1] - other.e[1],
+                self.e[2] - other.e[2]]
+        }
+    }
+}
+
+impl Sub<Vec3> for &Vec3 {
+    type Output = Vec3;
+
+    fn sub(self, other: Vec3) -> Vec3 {
+        Vec3 {
+            e: [self.e[0] - other.e[0],
+                self.e[1] - other.e[1],
+                self.e[2] - other.e[2]]
+        }
+    }
+}
+
+
+
+
 
 impl Sub for Vec3 {
     type Output = Self;
@@ -76,6 +157,19 @@ impl Sub for Vec3 {
         }
     }
 }
+
+impl Sub for &Vec3 {
+    type Output = Vec3;
+
+    fn sub(self, other: Self) -> Vec3 {
+        Vec3 {
+            e: [self.e[0] - other.e[0],
+                self.e[1] - other.e[1],
+                self.e[2] - other.e[2]]
+        }
+    }
+}
+
 
 impl Sub<f32> for Vec3 {
     type Output = Self;
@@ -109,6 +203,18 @@ impl Mul for Vec3 {
     }
 }
 
+impl Mul for &Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, other: Self) -> Vec3 {
+        Vec3 {
+            e: [self.e[0] * other.e[0],
+                self.e[1] * other.e[1],
+                self.e[2] * other.e[2]]
+        }
+    }
+}
+
 impl Mul<f32> for Vec3 {
     type Output = Self;
 
@@ -121,10 +227,30 @@ impl Mul<f32> for Vec3 {
     }
 }
 
+impl Mul<f32> for &Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, scalar: f32) -> Vec3 {
+        Vec3 {
+            e: [self.e[0] * scalar,
+                self.e[1] * scalar,
+                self.e[2] * scalar]
+        }
+    }
+}
+
 impl Mul<Vec3> for f32 {
     type Output = Vec3;
 
     fn mul(self, vector: Vec3) -> Vec3 {
+        vector * self
+    }
+}
+
+impl Mul<&Vec3> for f32 {
+    type Output = Vec3;
+
+    fn mul(self, vector: &Vec3) -> Vec3 {
         vector * self
     }
 }

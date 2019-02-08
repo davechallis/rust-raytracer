@@ -4,7 +4,7 @@ use crate::utils;
 use crate::hitable::HitRecord;
 use super::Material;
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct Lambertian {
     albedo: Vec3,
 }
@@ -18,11 +18,11 @@ impl Lambertian {
 impl Material for Lambertian {
     fn scatter(&self, _r: &Ray, hit_rec: &HitRecord) -> Option<(Vec3, Ray)> {
         // get random scatter direction from unit sphere
-        let target = hit_rec.p + hit_rec.normal + utils::random_in_unit_sphere();
+        let target = &hit_rec.p + &hit_rec.normal + utils::random_in_unit_sphere();
 
         // new ray from hit point
-        let scattered = Ray::new(hit_rec.p, target - hit_rec.p);
-        let attenuation = self.albedo;
+        let scattered = Ray::new(hit_rec.p.clone(), &target - &hit_rec.p);
+        let attenuation = self.albedo.clone();
 
         Some((attenuation, scattered))
     }

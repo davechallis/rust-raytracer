@@ -24,10 +24,10 @@ impl Material for Dielectric {
         let d = r.direction().dot(&hit_rec.normal);
         let (outward_normal, ni_over_nt, cosine) = if d > 0.0 {
             let cosine = self.reflective_index * d / r.direction().length();
-            (-hit_rec.normal, self.reflective_index, cosine)
+            (-hit_rec.normal.clone(), self.reflective_index, cosine)
         } else {
             let cosine = -d / r.direction().length();
-            (hit_rec.normal, 1.0 / self.reflective_index, cosine)
+            (hit_rec.normal.clone(), 1.0 / self.reflective_index, cosine)
         };
 
         let (refracted_ray, reflect_prob) = match utils::refract(&r.direction(), &outward_normal, ni_over_nt) {
@@ -45,9 +45,9 @@ impl Material for Dielectric {
 
         let mut rng = rand::thread_rng();
         let scattered_ray = if rng.gen_range(0.0, 1.0) < reflect_prob {
-            Ray::new(hit_rec.p, reflected)
+            Ray::new(hit_rec.p.clone(), reflected)
         } else {
-            Ray::new(hit_rec.p, refracted_ray.unwrap())
+            Ray::new(hit_rec.p.clone(), refracted_ray.unwrap())
         };
 
         Some((attenuation, scattered_ray))

@@ -35,21 +35,21 @@ impl Camera {
         let half_height = (theta / 2.0).tan();
         let half_width = aspect_ratio * half_height;
 
+        let origin = look_from.clone();
         let w = (look_from - look_at).to_unit_vector();
         let u = vup.cross(&w).to_unit_vector();
         let v = w.cross(&u);
 
-        let origin = look_from;
-        let lower_left_corner = origin - half_width * focus_dist * u - half_height * focus_dist * v - focus_dist * w;
-        let horizontal = 2.0 * half_width * focus_dist * u;
-        let vertical = 2.0 * half_height * focus_dist * v;
+        let lower_left_corner = &origin - &(&half_width * focus_dist * &u) - &half_height * focus_dist * &v - focus_dist * &w;
+        let horizontal = 2.0 * half_width * focus_dist * &u;
+        let vertical = 2.0 * half_height * focus_dist * &v;
         Camera { origin, lower_left_corner, horizontal, vertical, u, v, lens_radius }
     }
 
     pub fn get_ray(&self, s: f32, t: f32) -> Ray {
         let ray_disc = self.lens_radius * utils::random_in_unit_disc();
-        let offset = self.u * ray_disc[0] + self.v * ray_disc[1];
-        Ray::new(self.origin + offset,
-                 self.lower_left_corner + s * self.horizontal + t * self.vertical - self.origin - offset)
+        let offset = &self.u * ray_disc[0] + &self.v * ray_disc[1];
+        Ray::new(&self.origin + &offset,
+                 &self.lower_left_corner + s * &self.horizontal + t * &self.vertical - &self.origin - &offset)
     }
 }

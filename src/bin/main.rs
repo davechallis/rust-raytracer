@@ -92,7 +92,7 @@ fn random_sphere_scene() -> Vec<Box<dyn Hitable + Send + Sync>> {
                                    sphere_radius,
                                    b as f32 + 0.9 * rng.gen_range(0.0, 1.0));
 
-            if (center - Vec3::new(4.0, sphere_radius, 0.0)).length() > 0.9 {
+            if (&center - Vec3::new(4.0, sphere_radius, 0.0)).length() > 0.9 {
                 let sphere: Box<dyn Hitable + Send + Sync> = {
                     if choose_mat < 0.7 { // diffuse
                         let albedo = Vec3::new(rng.gen_range(0.0, 1.0) * rng.gen_range(0.0, 1.0),
@@ -166,13 +166,13 @@ impl<M: Material> Sphere<M> {
     }
 
     fn surface_normal(&self, p: &Vec3) -> Vec3 {
-        (*p - self.center) / self.radius
+        (p - &self.center) / self.radius
     }
 }
 
 impl<M: Material> Hitable for Sphere<M> {
     fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
-        let oc = *r.origin() - self.center; // vector from ray source to sphere center
+        let oc = r.origin() - &self.center; // vector from ray source to sphere center
         let a = r.direction().dot(&r.direction());
         let b = oc.dot(&r.direction());
         let c = oc.dot(&oc) - self.radius.powi(2);
