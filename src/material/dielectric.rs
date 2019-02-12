@@ -5,6 +5,7 @@ use crate::vec3::Vec3;
 use crate::hitable::HitRecord;
 use crate::material::Material;
 
+#[derive(Clone)]
 pub struct Dielectric {
     reflective_index: f32,
 }

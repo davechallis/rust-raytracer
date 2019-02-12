@@ -9,6 +9,7 @@ use rtracer::material::{Dielectric, Metal, Lambertian};
 use rtracer::hitable::{Hitable, MovingSphere, Sphere};
 use rtracer::camera::Camera;
 use rtracer::config::Config;
+use rtracer::bvh;
 
 fn main() {
     let conf = Config::from_cli_args();
@@ -26,6 +27,7 @@ fn main() {
     let camera = Camera::new(look_from, look_at, up_vector, field_of_view, aspect_ratio, aperture, focal_distance, 0.0, 1.0);
 
     let world = random_moving_sphere_scene();
+    let world: Box<dyn Hitable + Send + Sync> = Box::new(bvh::BvhNode::from_vec(world, 0.0, 1.0));
 
     let mut imgbuf = ImageBuffer::new(nx, ny);
 
@@ -50,7 +52,7 @@ fn main() {
                 let u = (i as f32 + rng.gen::<f32>()) / nx as f32;
                 let v = (j2 as f32 + rng.gen::<f32>()) / ny as f32;
                 let r = &camera.get_ray(u, v);
-                col += colour(&r, world.as_slice(), 0);
+                col += colour(&r, &world, 0);
             }
             col /= ns as f32;
 
@@ -168,7 +170,7 @@ fn random_moving_sphere_scene() -> Vec<Box<dyn Hitable + Send + Sync>> {
 }
 
 
-fn colour(r: &Ray, world: &[Box<dyn Hitable + Send + Sync>], depth: usize) -> Vec3 {
+fn colour(r: &Ray, world: &Box<dyn Hitable + Send + Sync>, depth: usize) -> Vec3 {
     // shadow acne problem - due to numerical inaccuracy, t can be e.g. -0.00000001 or 0.0000001,
     // so ignore values very close to 0
     match world.hit(r, 0.001, std::f32::MAX) {

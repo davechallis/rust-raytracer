@@ -5,3 +5,4 @@ pub mod hitable;
 mod utils;
 pub mod camera;
 pub mod config;
+pub mod bvh;

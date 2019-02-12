@@ -2,7 +2,9 @@ use crate::vec3::Vec3;
 use crate::ray::Ray;
 use crate::material::Material;
 use crate::hitable::{HitRecord, Hitable};
+use crate::bvh::AABB;
 
+#[derive(Clone)]
 pub struct Sphere<M: Material> {
     center: Vec3,
     radius: f32,
@@ -43,5 +45,10 @@ impl<M: Material> Hitable for Sphere<M> {
         }
 
         None
+    }
+
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
+        let r = Vec3::new(self.radius, self.radius, self.radius);
+        Some(AABB::new(&self.center - &r, &self.center + &r))
     }
 }
