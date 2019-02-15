@@ -16,7 +16,8 @@ fn main() {
     let ns = conf.samples(); // num samples for antialiasing
 
     let aspect_ratio = nx as f32 / ny as f32;
-    let scene = scenes::two_spheres(aspect_ratio);
+    //let scene = scenes::two_spheres(aspect_ratio);
+    let scene = scenes::random_moving_sphere_scene(aspect_ratio);
     //let world: Box<dyn Hitable + Send + Sync> = Box::new(bvh::BvhNode::from_vec(scene.hitables, 0.0, 1.0));
 
     let mut imgbuf = ImageBuffer::new(nx, ny);
