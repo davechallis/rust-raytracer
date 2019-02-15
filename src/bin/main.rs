@@ -17,8 +17,9 @@ fn main() {
 
     let aspect_ratio = nx as f32 / ny as f32;
     //let scene = scenes::two_spheres(aspect_ratio);
-    let scene = scenes::random_moving_sphere_scene(aspect_ratio);
+    //let scene = scenes::random_moving_sphere_scene(aspect_ratio);
     //let world: Box<dyn Hitable + Send + Sync> = Box::new(bvh::BvhNode::from_vec(scene.hitables, 0.0, 1.0));
+    let scene = scenes::two_perlin_spheres(aspect_ratio);
 
     let mut imgbuf = ImageBuffer::new(nx, ny);
 
@@ -94,7 +95,7 @@ fn colour(r: &Ray, world: &(dyn Hitable + Send + Sync), depth: usize) -> Vec3 {
             // linear blend of colours:
             // blended_value = (1-t) * start_value + t*end_value
             // with 0 <= t <= 1
-            (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
+            (1.0 - t) * Vec3::ones() + t * Vec3::new(0.5, 0.7, 1.0)
         }
     }
 }

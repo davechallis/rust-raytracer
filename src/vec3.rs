@@ -14,6 +14,10 @@ impl Vec3 {
         Self::new(0.0, 0.0, 0.0)
     }
 
+    pub fn ones() -> Self {
+        Self::new(1.0, 1.0, 1.0)
+    }
+
     pub fn length(&self) -> f32 {
         self.squared_length().sqrt()
     }

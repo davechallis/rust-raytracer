@@ -25,7 +25,7 @@ impl Material for Dielectric {
     fn scatter(&self, r: &Ray, hit_rec: &HitRecord) -> Option<(Vec3, Ray)> {
         let reflected = utils::reflect(&r.direction(), &hit_rec.normal);
 
-        let attenuation = Vec3::new(1.0, 1.0, 1.0);
+        let attenuation = Vec3::ones();
 
         let d = r.direction().dot(&hit_rec.normal);
         let (outward_normal, ni_over_nt, cosine) = if d > 0.0 {
