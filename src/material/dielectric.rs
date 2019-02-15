@@ -14,6 +14,11 @@ impl Dielectric {
     pub fn new(reflective_index: f32) -> Self {
         Dielectric { reflective_index }
     }
+
+    /// New glass-like dielectric (relective index 1.5).
+    pub fn new_glass() -> Self {
+        Self::new(1.5)
+    }
 }
 
 impl Material for Dielectric {
@@ -46,9 +51,9 @@ impl Material for Dielectric {
 
         let mut rng = rand::thread_rng();
         let scattered_ray = if rng.gen::<f32>() < reflect_prob {
-            Ray::new_at_time(hit_rec.p.clone(), reflected, r.time())
+            Ray::new_at_time(hit_rec.point.clone(), reflected, r.time())
         } else {
-            Ray::new_at_time(hit_rec.p.clone(), refracted_ray.unwrap(), r.time())
+            Ray::new_at_time(hit_rec.point.clone(), refracted_ray.unwrap(), r.time())
         };
 
         Some((attenuation, scattered_ray))

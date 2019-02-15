@@ -6,3 +6,5 @@ mod utils;
 pub mod camera;
 pub mod config;
 pub mod bvh;
+pub mod texture;
+pub mod scenes;

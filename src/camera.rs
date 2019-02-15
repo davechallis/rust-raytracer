@@ -4,6 +4,7 @@ use crate::vec3::Vec3;
 use crate::ray::Ray;
 use crate::utils;
 
+#[derive(Clone)]
 pub struct Camera {
     origin: Vec3,
     lower_left_corner: Vec3,

@@ -31,16 +31,16 @@ impl<M: Material> Hitable for Sphere<M> {
         if discriminant > 0.0 {
             let t = (-b - discriminant.sqrt()) / a;
             if t < t_max && t > t_min {
-                let p = r.point_at_parameter(t);
-                let normal = self.surface_normal(&p);
-                return Some(HitRecord { t, p, normal, material: &self.material });
+                let point = r.point_at_parameter(t);
+                let normal = self.surface_normal(&point);
+                return Some(HitRecord { t, point, normal, material: &self.material });
             }
 
             let t = (-b + discriminant.sqrt()) / a;
             if t < t_max && t > t_min {
-                let p = r.point_at_parameter(t);
-                let normal = self.surface_normal(&p);
-                return Some(HitRecord { t, p, normal, material: &self.material });
+                let point = r.point_at_parameter(t);
+                let normal = self.surface_normal(&point);
+                return Some(HitRecord { t, point, normal, material: &self.material });
             }
         }
 
