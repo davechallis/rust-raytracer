@@ -32,7 +32,7 @@ impl<T: Texture + Clone> Material for Metal<T> {
 
         let x = scattered_ray.direction().dot(&hit_rec.normal);
         if x > 0.0 {
-            let attenuation = self.albedo.value(0.0, 0.0, &hit_rec.point);
+            let attenuation = self.albedo.value(hit_rec.u, hit_rec.v, &hit_rec.point);
             Some((attenuation, scattered_ray))
         } else {
             None

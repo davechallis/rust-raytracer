@@ -44,14 +44,14 @@ impl<M: Material + Clone> Hitable for MovingSphere<M> {
             if t < t_max && t > t_min {
                 let p = r.point_at_parameter(t);
                 let normal = self.surface_normal(&p, time);
-                return Some(HitRecord { t, point: p, normal, material: &self.material });
+                return Some(HitRecord::new(t, p, normal, &self.material));
             }
 
             let t = (-b + discriminant.sqrt()) / a;
             if t < t_max && t > t_min {
                 let p = r.point_at_parameter(t);
                 let normal = self.surface_normal(&p, time);
-                return Some(HitRecord { t, point: p, normal, material: &self.material });
+                return Some(HitRecord::new(t, p, normal, &self.material));
             }
         }
 

@@ -303,6 +303,18 @@ impl Div<f32> for Vec3 {
     }
 }
 
+impl Div<f32> for &Vec3 {
+    type Output = Vec3;
+
+    fn div(self, scalar: f32) -> Vec3 {
+        Vec3 {
+            e: [self.e[0] / scalar,
+                self.e[1] / scalar,
+                self.e[2] / scalar]
+        }
+    }
+}
+
 impl DivAssign for Vec3 {
     fn div_assign(&mut self, other: Self) {
         self.e[0] /= other.e[0];

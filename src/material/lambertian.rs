@@ -23,7 +23,7 @@ impl<T: Texture + Clone> Material for Lambertian<T> {
 
         // new ray from hit point
         let scattered_ray = Ray::new_at_time(hit_rec.point.clone(), &target - &hit_rec.point, ray_in.time());
-        let attenuation = self.albedo.value(0.0, 0.0, &hit_rec.point);
+        let attenuation = self.albedo.value(hit_rec.u, hit_rec.v, &hit_rec.point);
 
         Some((attenuation, scattered_ray))
     }

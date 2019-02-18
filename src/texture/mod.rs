@@ -9,6 +9,9 @@ pub use checker::Checker;
 mod noise;
 pub use noise::Noise;
 
+mod image;
+pub use crate::texture::image::Image;
+
 mod perlin;
 
 pub trait Texture {

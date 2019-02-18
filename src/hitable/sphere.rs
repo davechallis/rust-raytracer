@@ -19,6 +19,16 @@ impl<M: Material> Sphere<M> {
     pub fn surface_normal(&self, p: &Vec3) -> Vec3 {
         (p - &self.center) / self.radius
     }
+
+    fn get_uv(&self, point: &Vec3) -> (f32, f32) {
+        let point = (point - &self.center) / self.radius;
+        let phi = point[2].atan2(point[0]);
+        let theta = point[1].asin();
+        let pi = std::f32::consts::PI;
+        let u = 1.0 - (phi + pi) / (2.0 * pi);
+        let v = (theta + pi / 2.0) / pi;
+        (u, v)
+    }
 }
 
 impl<M: Material> Hitable for Sphere<M> {
@@ -33,14 +43,16 @@ impl<M: Material> Hitable for Sphere<M> {
             if t < t_max && t > t_min {
                 let point = r.point_at_parameter(t);
                 let normal = self.surface_normal(&point);
-                return Some(HitRecord { t, point, normal, material: &self.material });
+                let (u, v) = self.get_uv(&point);
+                return Some(HitRecord::new_with_uv(t, point, normal, &self.material, u, v));
             }
 
             let t = (-b + discriminant.sqrt()) / a;
             if t < t_max && t > t_min {
                 let point = r.point_at_parameter(t);
                 let normal = self.surface_normal(&point);
-                return Some(HitRecord { t, point, normal, material: &self.material });
+                let (u, v) = self.get_uv(&point);
+                return Some(HitRecord::new_with_uv(t, point, normal, &self.material, u, v));
             }
         }
 

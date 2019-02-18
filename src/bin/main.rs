@@ -19,7 +19,9 @@ fn main() {
     //let scene = scenes::two_spheres(aspect_ratio);
     //let scene = scenes::random_moving_sphere_scene(aspect_ratio);
     //let world: Box<dyn Hitable + Send + Sync> = Box::new(bvh::BvhNode::from_vec(scene.hitables, 0.0, 1.0));
-    let scene = scenes::two_perlin_spheres(aspect_ratio);
+    //let scene = scenes::two_perlin_spheres(aspect_ratio);
+    //let scene = scenes::earth_sphere(aspect_ratio);
+    let scene = scenes::simple_light(aspect_ratio);
 
     let mut imgbuf = ImageBuffer::new(nx, ny);
 
@@ -78,25 +80,19 @@ fn colour(r: &Ray, world: &(dyn Hitable + Send + Sync), depth: usize) -> Vec3 {
     // so ignore values very close to 0
     match world.hit(r, 0.001, std::f32::MAX) {
         Some(hit) => {
+            let emitted = hit.material.emitted(hit.u, hit.v, &hit.point);
             if depth >= 50 {
-                return Vec3::new(0.0, 0.0, 0.0);
+                return emitted;
             }
 
             match hit.material.scatter(r, &hit) {
                 Some((attenuation, scattered)) => {
-                    attenuation * colour(&scattered, world, depth + 1)
+                    emitted + attenuation * colour(&scattered, world, depth + 1)
                 },
-                None => Vec3::new(0.0, 0.0, 0.0),
+                None => emitted,
             }
         },
-        None => {
-            let unit_direction = r.direction().to_unit_vector();
-            let t = 0.5 * (unit_direction[1] + 1.0);
-            // linear blend of colours:
-            // blended_value = (1-t) * start_value + t*end_value
-            // with 0 <= t <= 1
-            (1.0 - t) * Vec3::ones() + t * Vec3::new(0.5, 0.7, 1.0)
-        }
+        None => Vec3::zeros(), // default to black
     }
 }
 

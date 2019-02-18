@@ -9,11 +9,26 @@ pub use sphere::Sphere;
 mod moving_sphere;
 pub use moving_sphere::MovingSphere;
 
+mod xy_rectangle;
+pub use xy_rectangle::XYRectangle;
+
 pub struct HitRecord<'a> {
     pub t: f32,
     pub point: Vec3,
     pub normal: Vec3,
     pub material: &'a dyn Material,
+    pub u: f32,
+    pub v: f32,
+}
+
+impl<'a> HitRecord<'a> {
+    pub fn new(t: f32, point: Vec3, normal: Vec3, material: &'a dyn Material) -> Self {
+        Self::new_with_uv(t, point, normal, material, 0.0, 0.0)
+    }
+
+    pub fn new_with_uv(t: f32, point: Vec3, normal: Vec3, material: &'a dyn Material, u: f32, v: f32) -> Self {
+        Self { t, point, normal, material, u, v }
+    }
 }
 
 pub trait Hitable {

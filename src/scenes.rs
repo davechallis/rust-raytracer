@@ -2,9 +2,9 @@
 
 use rand::prelude::*;
 use crate::vec3::Vec3;
-use crate::material::{Dielectric, Metal, Lambertian};
+use crate::material::{Dielectric, DiffuseLight, Metal, Lambertian};
 use crate::texture;
-use crate::hitable::{Hitable, MovingSphere, Sphere};
+use crate::hitable::{XYRectangle, Hitable, MovingSphere, Sphere};
 use crate::camera::Camera;
 use crate::bvh;
 
@@ -175,6 +175,56 @@ pub fn two_perlin_spheres(aspect_ratio: f32) -> Scene<bvh::BvhNode> {
     let hitables: Vec<Box<dyn Hitable + Send + Sync>> = vec![
         Box::new(Sphere::new(Vec3::new(0.0, -1000.0, 0.0), 1000.0, Lambertian::new(noise.clone()))),
         Box::new(Sphere::new(Vec3::new(0.0, 2.0, 0.0), 2.0, Lambertian::new(noise.clone()))),
+    ];
+    let hitables = bvh::BvhNode::from_vec(hitables, time0, time1);
+    Scene { camera, hitables }
+}
+
+pub fn earth_sphere(aspect_ratio: f32) -> Scene<bvh::BvhNode> {
+    let look_from = Vec3::new(0.0, 10.0, 10.0);
+    let look_at = Vec3::new(0.0, 2.0, 0.0);
+    let up_vector = Vec3::new(0.0, 1.0, 0.0);
+    let field_of_view = 20.0;
+    let aperture = 0.0;
+    let focal_distance = 10.0;
+    let time0 = 0.0;
+    let time1 = 1.0;
+
+    let camera = Camera::new(look_from, look_at,
+                             up_vector, field_of_view, aspect_ratio, aperture, focal_distance,
+                             time0, time1);
+
+    let earth_img = texture::Image::new("/Users/dsc/src/rust-raytracer/earthmap1k.jpg");
+    let hitables: Vec<Box<dyn Hitable + Send + Sync>> = vec![
+        Box::new(Sphere::new(Vec3::new(0.0, -1000.0, 0.0), 1000.0, Lambertian::new(texture::Noise::new(4.0)))),
+        Box::new(Sphere::new(Vec3::new(1.5, 2.0, 0.0), 1.5, Lambertian::new(earth_img.clone()))),
+        Box::new(Sphere::new(Vec3::new(-1.5, 2.0, 0.0), 1.5, Metal::new(earth_img.clone(), 0.9))),
+    ];
+    let hitables = bvh::BvhNode::from_vec(hitables, time0, time1);
+    Scene { camera, hitables }
+}
+
+pub fn simple_light(aspect_ratio: f32) -> Scene<bvh::BvhNode> {
+    let look_from = Vec3::new(16.0, 5.0, 3.0);
+    let look_at = Vec3::new(0.0, 2.0, 0.0);
+    let up_vector = Vec3::new(0.0, 1.0, 0.0);
+    let field_of_view = 30.0;
+    let aperture = 0.0;
+    let focal_distance = 10.0;
+    let time0 = 0.0;
+    let time1 = 1.0;
+    let camera = Camera::new(look_from, look_at,
+                             up_vector, field_of_view, aspect_ratio, aperture, focal_distance,
+                             time0, time1);
+
+    let noise = texture::Noise::new(4.0);
+    let light = texture::Constant::from_rgb(6.0, 0.0, 0.0); // light > 1.0, bright enough to light things
+    let blue_light = texture::Constant::from_rgb(0.0, 4.0, 0.0); // light > 1.0, bright enough to light things
+    let hitables: Vec<Box<dyn Hitable + Send + Sync>> = vec![
+        Box::new(Sphere::new(Vec3::new(0.0, -1000.0, 0.0), 1000.0, Lambertian::new(noise.clone()))),
+        Box::new(Sphere::new(Vec3::new(0.0, 2.0, 0.0), 2.0, Lambertian::new(noise.clone()))),
+        Box::new(Sphere::new(Vec3::new(1.0, 6.0, 02.0), 0.5, DiffuseLight::new(light.clone()))),
+        Box::new(XYRectangle::new(3.0, 5.0, 1.0, 3.0, -2.0, DiffuseLight::new(blue_light.clone()))),
     ];
     let hitables = bvh::BvhNode::from_vec(hitables, time0, time1);
     Scene { camera, hitables }
