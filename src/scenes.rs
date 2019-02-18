@@ -171,7 +171,7 @@ pub fn two_perlin_spheres(aspect_ratio: f32) -> Scene<bvh::BvhNode> {
                              up_vector, field_of_view, aspect_ratio, aperture, focal_distance,
                              time0, time1);
 
-    let noise = texture::Noise::new();
+    let noise = texture::Noise::new(4.0);
     let hitables: Vec<Box<dyn Hitable + Send + Sync>> = vec![
         Box::new(Sphere::new(Vec3::new(0.0, -1000.0, 0.0), 1000.0, Lambertian::new(noise.clone()))),
         Box::new(Sphere::new(Vec3::new(0.0, 2.0, 0.0), 2.0, Lambertian::new(noise.clone()))),

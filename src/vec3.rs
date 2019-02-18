@@ -271,6 +271,14 @@ impl MulAssign for Vec3 {
     }
 }
 
+impl MulAssign<f32> for Vec3 {
+    fn mul_assign(&mut self, other: f32) {
+        self.e[0] *= other;
+        self.e[1] *= other;
+        self.e[2] *= other;
+    }
+}
+
 impl Div for Vec3 {
     type Output = Self;
 
