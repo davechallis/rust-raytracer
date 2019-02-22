@@ -5,14 +5,14 @@ use crate::hitable::{HitRecord, Hitable};
 use crate::bvh::AABB;
 
 #[derive(Clone)]
-pub struct Sphere<M: Material> {
+pub struct Sphere<'a> {
     center: Vec3,
     radius: f32,
-    material: M,
+    material: &'a dyn Material,
 }
 
-impl<M: Material> Sphere<M> {
-    pub fn new(center: Vec3, radius: f32, material: M) -> Self {
+impl<'a> Sphere<'a> {
+    pub fn new(center: Vec3, radius: f32, material: &'a dyn Material) -> Self {
         Sphere { center, radius, material }
     }
 
@@ -31,7 +31,7 @@ impl<M: Material> Sphere<M> {
     }
 }
 
-impl<M: Material> Hitable for Sphere<M> {
+impl<'a> Hitable for Sphere<'a> {
     fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
         let oc = r.origin() - &self.center; // vector from ray source to sphere center
         let a = r.direction().dot(&r.direction());
@@ -44,7 +44,7 @@ impl<M: Material> Hitable for Sphere<M> {
                 let point = r.point_at_parameter(t);
                 let normal = self.surface_normal(&point);
                 let (u, v) = self.get_uv(&point);
-                return Some(HitRecord::new_with_uv(t, point, normal, &self.material, u, v));
+                return Some(HitRecord::new_with_uv(t, point, normal, self.material, u, v));
             }
 
             let t = (-b + discriminant.sqrt()) / a;
@@ -52,7 +52,7 @@ impl<M: Material> Hitable for Sphere<M> {
                 let point = r.point_at_parameter(t);
                 let normal = self.surface_normal(&point);
                 let (u, v) = self.get_uv(&point);
-                return Some(HitRecord::new_with_uv(t, point, normal, &self.material, u, v));
+                return Some(HitRecord::new_with_uv(t, point, normal, self.material, u, v));
             }
         }
 

@@ -12,6 +12,9 @@ pub use moving_sphere::MovingSphere;
 mod rectangle;
 pub use rectangle::Rectangle;
 
+mod cuboid;
+pub use cuboid::Cuboid;
+
 pub struct HitRecord<'a> {
     pub t: f32,
     pub point: Vec3,
@@ -112,5 +115,31 @@ impl Hitable for [Box<dyn Hitable + Send + Sync>] {
         }
 
         Some(surrounding_box)
+    }
+}
+
+pub struct FlipNormals<T> {
+    hitable: T,
+}
+
+impl<T: Hitable + Send + Sync> FlipNormals<T> {
+    pub fn new(hitable: T) -> Self {
+        Self { hitable }
+    }
+}
+
+impl<T: Hitable + Send + Sync> Hitable for FlipNormals<T> {
+    fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
+        match self.hitable.hit(r, t_min, t_max) {
+            Some(mut hit_rec) => {
+                hit_rec.normal = -hit_rec.normal;
+                Some(hit_rec)
+            },
+            None => None,
+        }
+    }
+
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+        self.hitable.bounding_box(t0, t1)
     }
 }

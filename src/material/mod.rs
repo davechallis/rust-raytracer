@@ -12,7 +12,7 @@ use crate::ray::Ray;
 use crate::vec3::Vec3;
 use crate::hitable::HitRecord;
 
-pub trait Material {
+pub trait Material: Send + Sync {
     // (attenuation, ray)
     fn scatter(&self, r: &Ray, hit_rec: &HitRecord) -> Option<(Vec3, Ray)>;
 

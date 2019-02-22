@@ -4,6 +4,7 @@ use crate::material::Material;
 use crate::hitable::{HitRecord, Hitable};
 use crate::bvh::AABB;
 
+#[derive(Clone)]
 enum Plane {
     XY,
     YZ,
@@ -18,6 +19,7 @@ pub struct Rectangle<M: Material> {
     a_idx: usize,
     b_idx: usize,
     k_idx: usize,
+    plane: Plane,
     plane_normal: Vec3,
     k: f32,
     material: M,
@@ -42,7 +44,7 @@ impl<M: Material> Rectangle<M> {
             Plane::YZ => (1, 2, 0, Vec3::new(1.0, 0.0, 0.0)),
             Plane::XZ => (0, 2, 1, Vec3::new(0.0, 1.0, 0.0)),
         };
-        Self { a_bound, b_bound, a_idx, b_idx, k_idx, plane_normal, k, material }
+        Self { a_bound, b_bound, a_idx, b_idx, k_idx, plane, plane_normal, k, material }
     }
 }
 
@@ -78,8 +80,17 @@ impl<M: Material> Hitable for Rectangle<M> {
     }
 
     fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
-        let min = Vec3::new(self.a_bound.0, self.b_bound.0, self.k - 0.0001);
-        let max = Vec3::new(self.a_bound.1, self.b_bound.1, self.k + 0.0001);
+        let a_min = self.a_bound.0;
+        let a_max = self.a_bound.1;
+        let b_min = self.b_bound.0;
+        let b_max = self.b_bound.1;
+        let k_min = self.k - 0.0001;
+        let k_max = self.k + 0.0001;
+        let (min, max) = match self.plane {
+            Plane::XY => (Vec3::new(a_min, b_min, k_min), Vec3::new(a_max, b_max, k_max)),
+            Plane::YZ => (Vec3::new(k_min, a_min, b_min), Vec3::new(k_max, a_max, b_max)),
+            Plane::XZ => (Vec3::new(a_min, k_min, b_min), Vec3::new(a_max, k_max, b_max)),
+        };
         Some(AABB::new(min, max))
     }
 }

@@ -14,6 +14,6 @@ pub use crate::texture::image::Image;
 
 mod perlin;
 
-pub trait Texture {
+pub trait Texture: Send + Sync {
     fn value(&self, u: f32, v: f32, point: &Vec3) -> Vec3;
 }

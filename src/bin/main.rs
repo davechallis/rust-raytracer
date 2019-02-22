@@ -21,7 +21,8 @@ fn main() {
     //let world: Box<dyn Hitable + Send + Sync> = Box::new(bvh::BvhNode::from_vec(scene.hitables, 0.0, 1.0));
     //let scene = scenes::two_perlin_spheres(aspect_ratio);
     //let scene = scenes::earth_sphere(aspect_ratio);
-    let scene = scenes::simple_light(aspect_ratio);
+    //let scene = scenes::simple_light(aspect_ratio);
+    let scene = scenes::cornell_box(aspect_ratio);
 
     let mut imgbuf = ImageBuffer::new(nx, ny);
 
