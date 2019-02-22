@@ -15,6 +15,14 @@ impl AABB {
         Self { min, max }
     }
 
+    pub fn min(&self) -> &Vec3 {
+        &self.min
+    }
+
+    pub fn max(&self) -> &Vec3 {
+        &self.max
+    }
+
     // core logic
     pub fn _hit_orig(&self, ray_in: &Ray, tmin: f32, tmax: f32) -> bool {
         let ray_origin = ray_in.origin();

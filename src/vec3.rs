@@ -2,7 +2,7 @@ use std::ops::{Add, AddAssign, Neg, Div, DivAssign, Sub, SubAssign, Mul, MulAssi
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Vec3 {
-    e: [f32; 3]
+    pub e: [f32; 3]
 }
 
 impl Vec3 {
@@ -120,6 +120,15 @@ impl Add<f32> for &Vec3 {
 
 impl AddAssign for Vec3 {
     fn add_assign(&mut self, other: Self) {
+        self.e[0] += other.e[0];
+        self.e[1] += other.e[1];
+        self.e[2] += other.e[2];
+    }
+}
+
+
+impl AddAssign<&Vec3> for Vec3 {
+    fn add_assign(&mut self, other: &Vec3) {
         self.e[0] += other.e[0];
         self.e[1] += other.e[1];
         self.e[2] += other.e[2];

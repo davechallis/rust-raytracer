@@ -4,7 +4,7 @@ use rand::prelude::*;
 use crate::vec3::Vec3;
 use crate::material::{Dielectric, DiffuseLight, Metal, Lambertian};
 use crate::texture;
-use crate::hitable::{Cuboid, FlipNormals, Rectangle, Hitable, MovingSphere, Sphere};
+use crate::hitable::{Rotate, Translate, Cuboid, FlipNormals, Rectangle, Hitable, MovingSphere, Sphere};
 use crate::camera::Camera;
 use crate::bvh;
 
@@ -255,8 +255,26 @@ pub fn cornell_box(aspect_ratio: f32) -> Scene<bvh::BvhNode> {
         Box::new(FlipNormals::new(Rectangle::new_xz((0.0, 555.0), (0.0, 555.0), 555.0, white.clone()))),
         Box::new(Rectangle::new_xz((0.0, 555.0), (0.0, 555.0), 0.0, white.clone())),
         Box::new(FlipNormals::new(Rectangle::new_xy((0.0, 555.0), (0.0, 555.0), 555.0, white.clone()))),
-        Box::new(Cuboid::new(Vec3::new(130.0, 0.0, 65.0), Vec3::new(295.0, 165.0, 230.0), white.clone())),
-        Box::new(Cuboid::new(Vec3::new(265.0, 0.0, 295.0), Vec3::new(430.0, 330.0, 460.0), white.clone())),
+        Box::new(
+            Translate::new(
+                Rotate::new_y(
+                    Cuboid::new(Vec3::zeros(), Vec3::new(165.0, 165.0, 165.0), white.clone()),
+                    //-18.0
+                    0.0
+                ),
+                Vec3::new(130.0, 0.0, 65.0)
+            )
+        ),
+        Box::new(
+            Translate::new(
+                Rotate::new_y(
+                    Cuboid::new(Vec3::zeros(), Vec3::new(165.0, 330.0, 165.0), white.clone()),
+                    //15.0
+                    0.0
+                ),
+                Vec3::new(265.0, 0.0, 295.0)
+            )
+        ),
     ];
     let hitables = bvh::BvhNode::from_vec(hitables, time0, time1);
     Scene { camera, hitables }

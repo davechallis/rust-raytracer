@@ -143,3 +143,171 @@ impl<T: Hitable + Send + Sync> Hitable for FlipNormals<T> {
         self.hitable.bounding_box(t0, t1)
     }
 }
+
+
+pub struct Translate<T> {
+    hitable: T,
+    offset: Vec3,
+}
+
+impl<T: Hitable + Send + Sync> Translate<T> {
+    pub fn new(hitable: T, offset: Vec3) -> Self {
+        Self { hitable, offset }
+    }
+}
+
+impl<T: Hitable + Send + Sync> Hitable for Translate<T> {
+    fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
+        let moved_ray = Ray::new_at_time(r.origin() - &self.offset, r.direction().clone(), r.time());
+        match self.hitable.hit(&moved_ray, t_min, t_max) {
+            Some(mut hit_rec) => {
+                hit_rec.point += &self.offset;
+                Some(hit_rec)
+            },
+            None => None,
+        }
+    }
+
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+        match self.hitable.bounding_box(t0, t1) {
+            Some(bbox) => Some(AABB::new(bbox.min() + &self.offset, bbox.max() + &self.offset)),
+            None => None,
+        }
+    }
+}
+
+#[derive(Clone)]
+enum Axis {
+    X,
+    Y,
+    Z,
+}
+
+impl Axis {
+    fn idx(&self) -> usize {
+        match self {
+            Axis::X => 0,
+            Axis::Y => 1,
+            Axis::Z => 2,
+        }
+    }
+}
+
+pub struct Rotate<T> {
+    hitable: T,
+    axis: Axis,
+    sin_theta: f32,
+    cos_theta: f32,
+}
+
+impl<T: Hitable + Send + Sync> Rotate<T> {
+    pub fn new_x(hitable: T, angle: f32) -> Self {
+        Self::new(hitable, angle, Axis::X)
+    }
+
+    pub fn new_y(hitable: T, angle: f32) -> Self {
+        Self::new(hitable, angle, Axis::Y)
+    }
+
+    pub fn new_z(hitable: T, angle: f32) -> Self {
+        Self::new(hitable, angle, Axis::Z)
+    }
+
+    fn new(hitable: T, angle: f32, axis: Axis) -> Self {
+        let radians = (std::f32::consts::PI / 180.0) * angle;
+        let cos_theta = radians.cos();
+        let sin_theta = radians.sin();
+        Self { hitable, axis, sin_theta, cos_theta }
+    }
+}
+
+impl<T: Hitable + Send + Sync> Hitable for Rotate<T> {
+    fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
+        let cos_t = self.cos_theta;
+        let sin_t = self.sin_theta;
+
+        let (a_idx, b_idx) = match self.axis {
+            Axis::X => (1, 2),
+            Axis::Y => (0, 2),
+            Axis::Z => (0, 1),
+        };
+
+        let rotated_ray = {
+            let mut origin = r.origin().clone();
+            let mut direction = r.direction().clone();
+            origin[a_idx] = cos_t * origin[a_idx] - sin_t * origin[b_idx];
+            origin[b_idx] = sin_t * origin[a_idx] + cos_t * origin[b_idx];
+            direction[a_idx] = cos_t * direction[a_idx] - sin_t * direction[b_idx];
+            direction[b_idx] = sin_t * direction[a_idx] + cos_t * direction[b_idx];
+            Ray::new_at_time(origin, direction, r.time())
+        };
+
+        match self.hitable.hit(&rotated_ray, t_min, t_max) {
+            Some(mut hit_rec) => {
+                let p = &hit_rec.point.clone();
+                let n = &hit_rec.normal.clone();
+                hit_rec.point[a_idx] = cos_t * p[a_idx] + sin_t * p[b_idx];
+                hit_rec.point[b_idx] = -sin_t * p[a_idx] + cos_t * p[b_idx];
+                hit_rec.normal[a_idx] = cos_t * n[a_idx] + sin_t * n[b_idx];
+                hit_rec.normal[b_idx] = -sin_t * n[a_idx] + cos_t * n[b_idx];
+                Some(hit_rec)
+            },
+            None => None,
+        }
+    }
+
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+        let bbox = match self.hitable.bounding_box(t0, t1) {
+            Some(bbox) => bbox,
+            None => return None,
+        };
+
+        let mut min = Vec3::new(std::f32::MAX, std::f32::MAX, std::f32::MAX);
+        let mut max = Vec3::new(-std::f32::MAX, -std::f32::MAX, -std::f32::MAX);
+
+        for i in 0..2 {
+            let i = i as f32;
+            let x = i * bbox.max()[0] + (1.0 - i) * bbox.min()[0];
+
+            for j in 0..2 {
+                let j = j as f32;
+                let y = j * bbox.max()[1] + (1.0 - j) * bbox.min()[1];
+
+                for k in 0..2 {
+                    let k = k as f32;
+                    let z = k * bbox.max()[2] + (1.0 - k) * bbox.min()[2];
+
+                    let tester = match self.axis {
+                        Axis::X => {
+                            let new_y = self.cos_theta * y + self.sin_theta * z;
+                            let new_z = -self.sin_theta * y + self.cos_theta * z;
+                            Vec3::new(x, new_y, new_z)
+                        },
+                        Axis::Y => {
+                            let new_x = self.cos_theta * x + self.sin_theta * z;
+                            let new_z = -self.sin_theta * x + self.cos_theta * z;
+                            Vec3::new(new_x, y, new_z)
+                        },
+                        Axis::Z => {
+                            let new_x = self.cos_theta * x + self.sin_theta * y;
+                            let new_y = -self.sin_theta * x + self.cos_theta * y;
+                            Vec3::new(new_x, new_y, z)
+                        },
+                    };
+
+                    for c in 0..3 {
+                        if tester[c] > max[c] {
+                            max[c] = tester[c];
+                        }
+
+                        if tester[c] < min[c] {
+                            min[c] = tester[c];
+                        }
+                    }
+                }
+            }
+        }
+
+        Some(AABB::new(min, max))
+    }
+}
