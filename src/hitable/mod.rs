@@ -9,8 +9,8 @@ pub use sphere::Sphere;
 mod moving_sphere;
 pub use moving_sphere::MovingSphere;
 
-mod xy_rectangle;
-pub use xy_rectangle::XYRectangle;
+mod rectangle;
+pub use rectangle::Rectangle;
 
 pub struct HitRecord<'a> {
     pub t: f32,

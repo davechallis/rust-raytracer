@@ -4,7 +4,7 @@ use rand::prelude::*;
 use crate::vec3::Vec3;
 use crate::material::{Dielectric, DiffuseLight, Metal, Lambertian};
 use crate::texture;
-use crate::hitable::{XYRectangle, Hitable, MovingSphere, Sphere};
+use crate::hitable::{Rectangle, Hitable, MovingSphere, Sphere};
 use crate::camera::Camera;
 use crate::bvh;
 
@@ -224,7 +224,7 @@ pub fn simple_light(aspect_ratio: f32) -> Scene<bvh::BvhNode> {
         Box::new(Sphere::new(Vec3::new(0.0, -1000.0, 0.0), 1000.0, Lambertian::new(noise.clone()))),
         Box::new(Sphere::new(Vec3::new(0.0, 2.0, 0.0), 2.0, Lambertian::new(noise.clone()))),
         Box::new(Sphere::new(Vec3::new(1.0, 6.0, 02.0), 0.5, DiffuseLight::new(light.clone()))),
-        Box::new(XYRectangle::new(3.0, 5.0, 1.0, 3.0, -2.0, DiffuseLight::new(blue_light.clone()))),
+        Box::new(Rectangle::new_xy((3.0, 5.0), (1.0, 3.0), -2.0, DiffuseLight::new(blue_light.clone()))),
     ];
     let hitables = bvh::BvhNode::from_vec(hitables, time0, time1);
     Scene { camera, hitables }
