@@ -2,11 +2,13 @@ mod metal;
 mod lambertian;
 mod dielectric;
 mod diffuse_light;
+mod isotropic;
 
 pub use self::metal::Metal;
 pub use self::lambertian::Lambertian;
 pub use self::dielectric::Dielectric;
 pub use self::diffuse_light::DiffuseLight;
+pub use self::isotropic::Isotropic;
 
 use crate::ray::Ray;
 use crate::vec3::Vec3;

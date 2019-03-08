@@ -4,7 +4,7 @@ use rand::prelude::*;
 use crate::vec3::Vec3;
 use crate::material::{Dielectric, DiffuseLight, Metal, Lambertian};
 use crate::texture;
-use crate::hitable::{Rotate, Translate, Cuboid, FlipNormals, Rectangle, Hitable, MovingSphere, Sphere};
+use crate::hitable::{ConstantMedium, Rotate, Translate, Cuboid, FlipNormals, Rectangle, Hitable, MovingSphere, Sphere};
 use crate::camera::Camera;
 use crate::bvh;
 
@@ -230,7 +230,55 @@ pub struct Scene<T: Hitable + Send + Sync> {
 //    Scene { camera, hitables }
 //}
 
-pub fn cornell_box(aspect_ratio: f32) -> Scene<bvh::BvhNode> {
+//pub fn cornell_box(aspect_ratio: f32) -> Scene<bvh::BvhNode> {
+//    let look_from = Vec3::new(278.0, 278.0, -800.0);
+//    let look_at = Vec3::new(278.0, 278.0, 0.0);
+//    let up_vector = Vec3::new(0.0, 1.0, 0.0);
+//    let field_of_view = 40.0;
+//    let aperture = 0.0;
+//    let focal_distance = 10.0;
+//    let time0 = 0.0;
+//    let time1 = 1.0;
+//    let camera = Camera::new(look_from, look_at,
+//                             up_vector, field_of_view, aspect_ratio, aperture, focal_distance,
+//                             time0, time1);
+//
+//    let red = Lambertian::new(texture::Constant::from_rgb(0.65, 0.05, 0.05));
+//    let white = Lambertian::new(texture::Constant::from_rgb(0.73, 0.73, 0.73));
+//    let green = Lambertian::new(texture::Constant::from_rgb(0.12, 0.45, 0.15));
+//    let light = DiffuseLight::new(texture::Constant::from_rgb(15.0, 15.0, 15.0));
+//
+//    let hitables: Vec<Box<dyn Hitable + Send + Sync>> = vec![
+//        Box::new(FlipNormals::new(Rectangle::new_yz((0.0, 555.0), (0.0, 555.0), 555.0, green.clone()))),
+//        Box::new(Rectangle::new_yz((0.0, 555.0), (0.0, 555.0), 0.0, red.clone())),
+//        Box::new(Rectangle::new_xz((213.0, 343.0), (227.0, 332.0), 554.0, light.clone())),
+//        Box::new(FlipNormals::new(Rectangle::new_xz((0.0, 555.0), (0.0, 555.0), 555.0, white.clone()))),
+//        Box::new(Rectangle::new_xz((0.0, 555.0), (0.0, 555.0), 0.0, white.clone())),
+//        Box::new(FlipNormals::new(Rectangle::new_xy((0.0, 555.0), (0.0, 555.0), 555.0, white.clone()))),
+//        Box::new(
+//            Translate::new(
+//                Rotate::new_y(
+//                    Cuboid::new(Vec3::zeros(), Vec3::new(165.0, 165.0, 165.0), white.clone()),
+//                    -18.0
+//                ),
+//                Vec3::new(130.0, 0.0, 65.0)
+//            )
+//        ),
+//        Box::new(
+//            Translate::new(
+//                Rotate::new_y(
+//                    Cuboid::new(Vec3::zeros(), Vec3::new(165.0, 330.0, 165.0), white.clone()),
+//                    15.0
+//                ),
+//                Vec3::new(265.0, 0.0, 295.0)
+//            )
+//        ),
+//    ];
+//    let hitables = bvh::BvhNode::from_vec(hitables, time0, time1);
+//    Scene { camera, hitables }
+//}
+
+pub fn cornell_smoke(aspect_ratio: f32) -> Scene<bvh::BvhNode> {
     let look_from = Vec3::new(278.0, 278.0, -800.0);
     let look_at = Vec3::new(278.0, 278.0, 0.0);
     let up_vector = Vec3::new(0.0, 1.0, 0.0);
@@ -246,31 +294,39 @@ pub fn cornell_box(aspect_ratio: f32) -> Scene<bvh::BvhNode> {
     let red = Lambertian::new(texture::Constant::from_rgb(0.65, 0.05, 0.05));
     let white = Lambertian::new(texture::Constant::from_rgb(0.73, 0.73, 0.73));
     let green = Lambertian::new(texture::Constant::from_rgb(0.12, 0.45, 0.15));
-    let light = DiffuseLight::new(texture::Constant::from_rgb(15.0, 15.0, 15.0));
+    let light = DiffuseLight::new(texture::Constant::from_rgb(5.0, 5.0, 5.0));
 
     let hitables: Vec<Box<dyn Hitable + Send + Sync>> = vec![
         Box::new(FlipNormals::new(Rectangle::new_yz((0.0, 555.0), (0.0, 555.0), 555.0, green.clone()))),
         Box::new(Rectangle::new_yz((0.0, 555.0), (0.0, 555.0), 0.0, red.clone())),
-        Box::new(Rectangle::new_xz((213.0, 343.0), (227.0, 332.0), 554.0, light.clone())),
+        Box::new(Rectangle::new_xz((113.0, 443.0), (127.0, 432.0), 554.0, light.clone())),
         Box::new(FlipNormals::new(Rectangle::new_xz((0.0, 555.0), (0.0, 555.0), 555.0, white.clone()))),
         Box::new(Rectangle::new_xz((0.0, 555.0), (0.0, 555.0), 0.0, white.clone())),
         Box::new(FlipNormals::new(Rectangle::new_xy((0.0, 555.0), (0.0, 555.0), 555.0, white.clone()))),
         Box::new(
-            Translate::new(
-                Rotate::new_y(
-                    Cuboid::new(Vec3::zeros(), Vec3::new(165.0, 165.0, 165.0), white.clone()),
-                    -18.0
+            ConstantMedium::new(
+                Translate::new(
+                    Rotate::new_y(
+                        Cuboid::new(Vec3::zeros(), Vec3::new(165.0, 165.0, 165.0), white.clone()),
+                        -18.0
+                    ),
+                    Vec3::new(130.0, 0.0, 65.0)
                 ),
-                Vec3::new(130.0, 0.0, 65.0)
+                0.01,
+                texture::Constant::from_rgb(1.0, 1.0, 1.0),
             )
         ),
         Box::new(
-            Translate::new(
-                Rotate::new_y(
-                    Cuboid::new(Vec3::zeros(), Vec3::new(165.0, 330.0, 165.0), white.clone()),
-                    15.0
+            ConstantMedium::new(
+                Translate::new(
+                    Rotate::new_y(
+                        Cuboid::new(Vec3::zeros(), Vec3::new(165.0, 330.0, 165.0), white.clone()),
+                        15.0
+                    ),
+                    Vec3::new(265.0, 0.0, 295.0)
                 ),
-                Vec3::new(265.0, 0.0, 295.0)
+                0.01,
+                texture::Constant::from_rgb(0.0, 0.0, 0.0),
             )
         ),
     ];

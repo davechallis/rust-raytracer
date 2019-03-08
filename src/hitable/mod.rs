@@ -15,6 +15,10 @@ pub use rectangle::Rectangle;
 mod cuboid;
 pub use cuboid::Cuboid;
 
+mod constant_medium;
+pub use constant_medium::ConstantMedium;
+
+#[derive(Clone)]
 pub struct HitRecord<'a> {
     pub t: f32,
     pub point: Vec3,

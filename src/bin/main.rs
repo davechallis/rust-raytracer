@@ -22,7 +22,8 @@ fn main() {
     //let scene = scenes::two_perlin_spheres(aspect_ratio);
     //let scene = scenes::earth_sphere(aspect_ratio);
     //let scene = scenes::simple_light(aspect_ratio);
-    let scene = scenes::cornell_box(aspect_ratio);
+    //let scene = scenes::cornell_box(aspect_ratio);
+    let scene = scenes::cornell_smoke(aspect_ratio);
 
     let mut imgbuf = ImageBuffer::new(nx, ny);
 
