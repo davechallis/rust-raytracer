@@ -215,8 +215,8 @@ impl<T: Hitable + Send + Sync> Rotate<T> {
 
     fn new(hitable: T, angle: f32, axis: Axis) -> Self {
         let radians = (std::f32::consts::PI / 180.0) * angle;
-        let cos_theta = radians.cos();
         let sin_theta = radians.sin();
+        let cos_theta = radians.cos();
         Self { hitable, axis, sin_theta, cos_theta }
     }
 }
@@ -235,10 +235,10 @@ impl<T: Hitable + Send + Sync> Hitable for Rotate<T> {
         let rotated_ray = {
             let mut origin = r.origin().clone();
             let mut direction = r.direction().clone();
-            origin[a_idx] = cos_t * origin[a_idx] - sin_t * origin[b_idx];
-            origin[b_idx] = sin_t * origin[a_idx] + cos_t * origin[b_idx];
-            direction[a_idx] = cos_t * direction[a_idx] - sin_t * direction[b_idx];
-            direction[b_idx] = sin_t * direction[a_idx] + cos_t * direction[b_idx];
+            origin[a_idx] = cos_t * r.origin()[a_idx] - sin_t * r.origin()[b_idx];
+            origin[b_idx] = sin_t * r.origin()[a_idx] + cos_t * r.origin()[b_idx];
+            direction[a_idx] = cos_t * r.direction()[a_idx] - sin_t * r.direction()[b_idx];
+            direction[b_idx] = sin_t * r.direction()[a_idx] + cos_t * r.direction()[b_idx];
             Ray::new_at_time(origin, direction, r.time())
         };
 
@@ -263,7 +263,7 @@ impl<T: Hitable + Send + Sync> Hitable for Rotate<T> {
         };
 
         let mut min = Vec3::new(std::f32::MAX, std::f32::MAX, std::f32::MAX);
-        let mut max = Vec3::new(-std::f32::MAX, -std::f32::MAX, -std::f32::MAX);
+        let mut max = Vec3::new(std::f32::MIN, std::f32::MIN, std::f32::MIN);
 
         for i in 0..2 {
             let i = i as f32;

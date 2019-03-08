@@ -259,8 +259,7 @@ pub fn cornell_box(aspect_ratio: f32) -> Scene<bvh::BvhNode> {
             Translate::new(
                 Rotate::new_y(
                     Cuboid::new(Vec3::zeros(), Vec3::new(165.0, 165.0, 165.0), white.clone()),
-                    //-18.0
-                    0.0
+                    -18.0
                 ),
                 Vec3::new(130.0, 0.0, 65.0)
             )
@@ -269,8 +268,7 @@ pub fn cornell_box(aspect_ratio: f32) -> Scene<bvh::BvhNode> {
             Translate::new(
                 Rotate::new_y(
                     Cuboid::new(Vec3::zeros(), Vec3::new(165.0, 330.0, 165.0), white.clone()),
-                    //15.0
-                    0.0
+                    15.0
                 ),
                 Vec3::new(265.0, 0.0, 295.0)
             )
