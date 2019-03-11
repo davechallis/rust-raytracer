@@ -294,7 +294,7 @@ pub fn cornell_smoke(aspect_ratio: f32) -> Scene<bvh::BvhNode> {
     let red = Lambertian::new(texture::Constant::from_rgb(0.65, 0.05, 0.05));
     let white = Lambertian::new(texture::Constant::from_rgb(0.73, 0.73, 0.73));
     let green = Lambertian::new(texture::Constant::from_rgb(0.12, 0.45, 0.15));
-    let light = DiffuseLight::new(texture::Constant::from_rgb(5.0, 5.0, 5.0));
+    let light = DiffuseLight::new(texture::Constant::from_rgb(4.0, 4.0, 4.0));
 
     let hitables: Vec<Box<dyn Hitable + Send + Sync>> = vec![
         Box::new(FlipNormals::new(Rectangle::new_yz((0.0, 555.0), (0.0, 555.0), 555.0, green.clone()))),
