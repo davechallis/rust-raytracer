@@ -23,7 +23,8 @@ fn main() {
     //let scene = scenes::earth_sphere(aspect_ratio);
     //let scene = scenes::simple_light(aspect_ratio);
     //let scene = scenes::cornell_box(aspect_ratio);
-    let scene = scenes::cornell_smoke(aspect_ratio);
+    //let scene = scenes::cornell_smoke(aspect_ratio);
+    let scene = scenes::tnw_final_scene(aspect_ratio);
 
     let mut imgbuf = ImageBuffer::new(nx, ny);
 
@@ -52,12 +53,14 @@ fn main() {
             }
             col /= ns as f32;
 
-            pb.inc(u64::from(ns)); (i, j, col)
+            pb.inc(u64::from(ns));
+            (i, j, col)
         })
         .collect();
 
     for (i, j, col) in pixels {
-        imgbuf.put_pixel(i, j, Rgb(to_colour(col)));
+        let rgb = to_colour(&col);
+        imgbuf.put_pixel(i, j, Rgb(rgb));
     }
 
     imgbuf.save(conf.output()).unwrap();
@@ -98,8 +101,8 @@ fn colour(r: &Ray, world: &(dyn Hitable + Send + Sync), depth: usize) -> Vec3 {
     }
 }
 
-fn to_colour(col: Vec3) -> [u8; 3] {
-    [(255.99 * col[0].sqrt()) as u8,
-     (255.99 * col[1].sqrt()) as u8,
-     (255.99 * col[2].sqrt()) as u8]
+fn to_colour(col: &Vec3) -> [u8; 3] {
+    [(255.99 * col[0].sqrt()).min(255.0) as u8,
+     (255.99 * col[1].sqrt()).min(255.0) as u8,
+     (255.99 * col[2].sqrt()).min(255.0) as u8]
 }

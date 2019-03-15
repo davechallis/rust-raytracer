@@ -1,6 +1,5 @@
 use rand::prelude::*;
 use crate::vec3::Vec3;
-use crate::material::Material;
 use crate::hitable::Hitable;
 use crate::ray::Ray;
 use crate::hitable::HitRecord;

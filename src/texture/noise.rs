@@ -32,6 +32,6 @@ impl Texture for Noise {
     fn value(&self, _u: f32, _v: f32, point: &Vec3) -> Vec3 {
         //Vec3::new(0.5, 0.5, 0.5) * (1.0 + self.turbulence(&(self.scale * point), 7))
         //Vec3::ones() * self.turbulence(&(self.scale * point), 7)
-        Vec3::new(0.5, 0.5, 0.5) * (1.0 + (self.scale * point[2] + 10.0 * self.turbulence(point, 7)).sin())
+        Vec3::new(0.5, 0.5, 0.5) * (1.0 + (self.scale * point[0] + 5.0 * self.turbulence(&(self.scale * point), 7)).sin())
     }
 }
